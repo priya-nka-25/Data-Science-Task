@@ -1,0 +1,45 @@
+{
+  "confidence_threshold_chosen": 0.85,
+  "threshold_rationale": "A threshold of 0.85 was established based on Indian regulatory compliance (IRDAI/RBI) for insurance underwriting and KYC straight-through processing (STP). Any field scoring below 0.85 indicates handwritten ambiguity, non-standard date formatting, or high-risk underwriter designations (e.g. non-standard nominee relationship or cursive agent signatures) that present operational or legal risks if processed without human verification.",
+  "total_documents_processed": 10,
+  "total_fields_extracted": 44,
+  "total_flagged_fields": 4,
+  "flagged_fields": [
+    {
+      "file_name": "Fatca.jpeg",
+      "document_type": "FATCA Annexure Form (handwritten)",
+      "field_name": "TIN / PAN",
+      "extracted_value": "BPQPD3051R",
+      "confidence_score": 0.83,
+      "confidence_threshold": 0.85,
+      "rationale": "Confidence score 0.83 is below the 0.85 STP threshold. Handwritten PAN characters in tax table. Cursive glyph variance on 'Q' vs 'O'. Requires human review before automated straight-through processing."
+    },
+    {
+      "file_name": "Moral.jpeg",
+      "document_type": "Moral Hazard Questionnaire (handwritten)",
+      "field_name": "Nominee Relationship",
+      "extracted_value": "Nephew",
+      "confidence_score": 0.78,
+      "confidence_threshold": 0.85,
+      "rationale": "Confidence score 0.78 is below the 0.85 STP threshold. Handwritten non-standard relationship text in cursive; flagged for underwriter approval. Requires human review before automated straight-through processing."
+    },
+    {
+      "file_name": "suitability.jpeg",
+      "document_type": "Suitability Profiler Declaration (handwritten)",
+      "field_name": "Name of Agent/SP",
+      "extracted_value": "Ramesh Kumar",
+      "confidence_score": 0.82,
+      "confidence_threshold": 0.85,
+      "rationale": "Confidence score 0.82 is below the 0.85 STP threshold. Handwritten Agent/SP cursive script; requires agent code cross-validation. Requires human review before automated straight-through processing."
+    },
+    {
+      "file_name": "suitability.jpeg",
+      "document_type": "Suitability Profiler Declaration (handwritten)",
+      "field_name": "Date",
+      "extracted_value": "26/04/26",
+      "confidence_score": 0.81,
+      "confidence_threshold": 0.85,
+      "rationale": "Confidence score 0.81 is below the 0.85 STP threshold. Handwritten date with truncated 2-digit year format ('26' instead of '2026'). Requires human review before automated straight-through processing."
+    }
+  ]
+}
