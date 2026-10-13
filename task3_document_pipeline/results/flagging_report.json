@@ -1,10 +1,19 @@
 {
   "confidence_threshold_chosen": 0.85,
-  "threshold_rationale": "A threshold of 0.85 was established based on Indian regulatory compliance (IRDAI/RBI) for insurance underwriting and KYC straight-through processing (STP). Any field scoring below 0.85 indicates handwritten ambiguity, non-standard date formatting, or high-risk underwriter designations (e.g. non-standard nominee relationship or cursive agent signatures) that present operational or legal risks if processed without human verification.",
+  "threshold_rationale": "A threshold of 0.85 was established based on Indian regulatory compliance (IRDAI/RBI) for insurance underwriting and KYC straight-through processing (STP). Any field scoring below 0.85 indicates handwritten cursive ambiguity, non-standard date formatting, or high-risk underwriter designations that present operational or legal risks if processed without human verification.",
   "total_documents_processed": 10,
   "total_fields_extracted": 44,
-  "total_flagged_fields": 4,
+  "total_flagged_fields": 5,
   "flagged_fields": [
+    {
+      "file_name": "Aadhar.png",
+      "document_type": "Aadhaar Card",
+      "field_name": "Address",
+      "extracted_value": "S/O Kumar, Kataia, West Bihar, India - 841543",
+      "confidence_score": 0.79,
+      "confidence_threshold": 0.85,
+      "rationale": "Confidence score 0.79 is below the 0.85 STP threshold. Reverse card address block. Requires Level-2 underwriter review."
+    },
     {
       "file_name": "Fatca.jpeg",
       "document_type": "FATCA Annexure Form (handwritten)",
@@ -12,7 +21,7 @@
       "extracted_value": "BPQPD3051R",
       "confidence_score": 0.83,
       "confidence_threshold": 0.85,
-      "rationale": "Confidence score 0.83 is below the 0.85 STP threshold. Handwritten PAN characters in tax table. Cursive glyph variance on 'Q' vs 'O'. Requires human review before automated straight-through processing."
+      "rationale": "Confidence score 0.83 is below the 0.85 STP threshold. Handwritten characters in tax grid; cursive ambiguity on 'Q' vs 'O'. Requires Level-2 underwriter review."
     },
     {
       "file_name": "Moral.jpeg",
@@ -21,7 +30,7 @@
       "extracted_value": "Nephew",
       "confidence_score": 0.78,
       "confidence_threshold": 0.85,
-      "rationale": "Confidence score 0.78 is below the 0.85 STP threshold. Handwritten non-standard relationship text in cursive; flagged for underwriter approval. Requires human review before automated straight-through processing."
+      "rationale": "Confidence score 0.78 is below the 0.85 STP threshold. Handwritten cursive non-standard nominee text; requires underwriter review. Requires Level-2 underwriter review."
     },
     {
       "file_name": "suitability.jpeg",
@@ -30,7 +39,7 @@
       "extracted_value": "Ramesh Kumar",
       "confidence_score": 0.82,
       "confidence_threshold": 0.85,
-      "rationale": "Confidence score 0.82 is below the 0.85 STP threshold. Handwritten Agent/SP cursive script; requires agent code cross-validation. Requires human review before automated straight-through processing."
+      "rationale": "Confidence score 0.82 is below the 0.85 STP threshold. Handwritten freehand agent script; requires agent code cross-check. Requires Level-2 underwriter review."
     },
     {
       "file_name": "suitability.jpeg",
@@ -39,7 +48,7 @@
       "extracted_value": "26/04/26",
       "confidence_score": 0.81,
       "confidence_threshold": 0.85,
-      "rationale": "Confidence score 0.81 is below the 0.85 STP threshold. Handwritten date with truncated 2-digit year format ('26' instead of '2026'). Requires human review before automated straight-through processing."
+      "rationale": "Confidence score 0.81 is below the 0.85 STP threshold. Handwritten date with truncated 2-digit year format ('26'). Requires Level-2 underwriter review."
     }
   ]
 }

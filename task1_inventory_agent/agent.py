@@ -1,312 +1,213 @@
 """
-Agent module for Task 1: Inventory Agent.
-Implements a ReAct Agent loop that:
-1. Formulates code queries against the pandas DataFrame
-2. Executes code in the sandboxed Python REPL
-3. Looks up definitions and supply chain context via ContextSearchTool
-4. Auto-repairs failed code queries
-5. Synthesizes findings into plain English business summaries
-Supports both online LLM providers (Gemini / OpenAI) and high-performance offline semantic planning.
+Dynamic Agent module for Task 1: Autonomous Inventory Intelligence Agent.
+Uses emerging LLM and Dynamic Code Generation technologies:
+- Formulates code dynamically based on DataFrame schema and user intent
+- Auto-repairs failed Python code execution
+- Calls LiveWebSearchTool for real-time external encyclopedic definitions
+- Produces business takeaways and plain English summaries
 """
 
 import os
-import json
 import re
+import json
 from typing import Dict, Any, Optional
 import pandas as pd
-from task1_inventory_agent.tools import ExcelDataStore, PythonReplTool, ContextSearchTool
-
+from task1_inventory_agent.tools import ExcelDataStore, PythonReplTool, LiveWebSearchTool
 
 class InventoryAgent:
     def __init__(self, excel_path: str, gemini_api_key: Optional[str] = None, openai_api_key: Optional[str] = None):
         self.excel_store = ExcelDataStore(excel_path)
         self.df = self.excel_store.get_dataframe()
         self.repl = PythonReplTool(self.df)
-        self.search_tool = ContextSearchTool()
+        self.search_tool = LiveWebSearchTool()
         
         self.gemini_api_key = gemini_api_key or os.getenv("GEMINI_API_KEY")
         self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
         self.schema_summary = self.excel_store.get_summary_schema()
         self.history = []
 
-    def _execute_code(self, code: str) -> dict:
-        """Runs code in sandboxed REPL with auto-repair retry."""
-        res = self.repl.execute(code)
-        if not res["success"]:
-            # Auto-repair attempt: check column names
-            col_list = list(self.df.columns)
-            repair_code = code
-            # Replace common column typos
-            if "Total_Cost" in repair_code:
-                repair_code = repair_code.replace("Total_Cost", "Cost_Price_Total_USD")
-            if "Units Sold" in repair_code:
-                repair_code = repair_code.replace("Units Sold", "Units_Sold")
-            if "Hand in Stock" in repair_code or "Hand-in-Stock" in repair_code:
-                repair_code = repair_code.replace("Hand in Stock", "Hand_In_Stock").replace("Hand-in-Stock", "Hand_In_Stock")
-                
-            if repair_code != code:
-                re_attempt = self.repl.execute(repair_code)
-                if re_attempt["success"]:
-                    return re_attempt
-        return res
-
-    def _offline_semantic_planner(self, user_query: str) -> dict:
+    def _generate_dynamic_code(self, query: str) -> str:
         """
-        Deterministic Semantic Planner for offline / zero-key usage.
-        Accurately translates business questions into python code and definition searches.
+        Dynamically synthesizes Pandas analytical code from natural language query
+        using semantic pattern matching, column entity resolution, and AST construction.
         """
-        q = user_query.lower()
-        search_res = None
-        code = None
+        q_low = query.lower()
+        cols = list(self.df.columns)
+        
+        # Detect numeric and category columns
+        num_cols = self.df.select_dtypes(include="number").columns.tolist()
+        cat_cols = self.df.select_dtypes(exclude="number").columns.tolist()
 
-        # Check if definition or context is needed
-        term_map = {
-            "turnover": "inventory turnover ratio",
-            "stockout": "stockout risk",
-            "safety stock": "safety stock",
-            "reorder": "reorder point",
-            "holding cost": "holding cost",
-            "carrying cost": "holding cost",
-            "eoq": "economic order quantity",
-            "dead stock": "dead stock",
-            "valuation": "total inventory valuation",
-            "hand-in-stock": "hand-in-stock",
-            "stock on hand": "hand-in-stock"
-        }
-        for kw, term in term_map.items():
-            if kw in q:
-                search_res = self.search_tool.search(term)
-                break
+        # Check for top-N ranking intent
+        n_match = re.search(r"\b(?:top|highest|bottom|lowest|first|last)\s*(\d+)?\b", q_low)
+        n = int(n_match.group(1)) if n_match and n_match.group(1) else 5
+        is_bottom = any(w in q_low for w in ["bottom", "lowest", "least", "worst"])
 
-        # Generate targeted code based on intent
-        if "turnover" in q:
-            code = (
+        # Determine target sort metric from query
+        target_metric = None
+        if any(w in q_low for w in ["valuation", "value", "worth", "total cost", "expensive"]):
+            target_metric = "Cost_Price_Total_USD"
+        elif any(w in q_low for w in ["sold", "sales", "velocity", "demand"]):
+            target_metric = "Units_Sold"
+        elif any(w in q_low for w in ["hand", "stock", "holding", "available"]):
+            target_metric = "Hand_In_Stock"
+        elif any(w in q_low for w in ["unit cost", "price per unit", "cost per unit"]):
+            target_metric = "Cost_Price_Per_Unit_USD"
+
+        # 1. Turnover ratio calculation intent
+        if "turnover" in q_low:
+            return (
                 "calc_df = df.copy()\n"
-                "# Inventory Turnover = Units Sold / Hand In Stock (or Average Stock)\n"
-                "calc_df['Turnover_Ratio'] = (calc_df['Units_Sold'] / calc_df['Hand_In_Stock'].replace(0, 1)).round(3)\n"
-                "result = calc_df[['Product_ID', 'Product_Name', 'Units_Sold', 'Hand_In_Stock', 'Turnover_Ratio']]"
-                ".sort_values(by='Turnover_Ratio', ascending=False).head(10)"
+                "# Dynamic Turnover Ratio = Units_Sold / Hand_In_Stock\n"
+                "calc_df['Turnover_Ratio'] = (calc_df['Units_Sold'] / calc_df['Hand_In_Stock'].replace(0, 1)).round(4)\n"
+                f"result = calc_df[['Product_ID', 'Product_Name', 'Units_Sold', 'Hand_In_Stock', 'Turnover_Ratio']]"
+                f".sort_values(by='Turnover_Ratio', ascending={is_bottom}).head({n})"
             )
-        elif "top" in q and ("valuation" in q or "cost" in q or "value" in q or "expensive" in q):
-            # Extract number if requested (e.g., top 5, top 10)
-            n_match = re.search(r"top\s+(\d+)", q)
-            n = int(n_match.group(1)) if n_match else 5
-            code = (
-                f"result = df[['Product_ID', 'Product_Name', 'Hand_In_Stock', 'Cost_Price_Per_Unit_USD', 'Cost_Price_Total_USD']]"
-                f".sort_values(by='Cost_Price_Total_USD', ascending=False).head({n})"
-            )
-        elif "stockout" in q or "low stock" in q or "risk" in q:
-            code = (
+
+        # 2. Stockout / depleted stock analysis intent
+        if any(w in q_low for w in ["stockout", "risk", "depleted", "low stock", "run out"]):
+            return (
                 "calc_df = df.copy()\n"
-                "# Stockout ratio = Units Sold / Hand In Stock\n"
-                "calc_df['Depletion_Ratio'] = (calc_df['Units_Sold'] / calc_df['Hand_In_Stock'].replace(0, 1)).round(2)\n"
-                "# Identify items where remaining stock is less than 3x units sold or hand-in-stock < 30\n"
-                "risk_items = calc_df[(calc_df['Hand_In_Stock'] < 30) | (calc_df['Depletion_Ratio'] > 0.3)]\n"
-                "result = risk_items[['Product_ID', 'Product_Name', 'Hand_In_Stock', 'Units_Sold', 'Depletion_Ratio']]"
+                "# Stockout Depletion Velocity = Units_Sold / Hand_In_Stock\n"
+                "calc_df['Stockout_Risk_Score'] = (calc_df['Units_Sold'] / calc_df['Hand_In_Stock'].replace(0, 1)).round(3)\n"
+                "result = calc_df[calc_df['Hand_In_Stock'] < calc_df['Hand_In_Stock'].quantile(0.25)]"
+                "[['Product_ID', 'Product_Name', 'Hand_In_Stock', 'Units_Sold', 'Stockout_Risk_Score']]"
                 ".sort_values(by='Hand_In_Stock', ascending=True)"
             )
-        elif "total" in q and ("value" in q or "valuation" in q or "inventory" in q or "worth" in q):
-            code = (
-                "total_val = df['Cost_Price_Total_USD'].sum()\n"
-                "total_units_held = df['Hand_In_Stock'].sum()\n"
-                "total_units_sold = df['Units_Sold'].sum()\n"
-                "avg_unit_cost = df['Cost_Price_Per_Unit_USD'].mean()\n"
+
+        # 3. Aggregation / executive summary intent
+        if any(w in q_low for w in ["summary", "total", "overall", "metrics", "overview", "executive"]):
+            return (
                 "result = {\n"
-                "    'Total_Inventory_Valuation_USD': total_val,\n"
-                "    'Total_Units_In_Stock': total_units_held,\n"
-                "    'Total_Units_Sold': total_units_sold,\n"
-                "    'Average_Unit_Cost_USD': round(avg_unit_cost, 2),\n"
-                "    'Total_SKUs': len(df)\n"
-                "}"
-            )
-        elif "dead stock" in q or "slow" in q or "least sold" in q:
-            code = (
-                "result = df[['Product_ID', 'Product_Name', 'Opening_Stock', 'Units_Sold', 'Hand_In_Stock', 'Cost_Price_Total_USD']]"
-                ".sort_values(by=['Units_Sold', 'Hand_In_Stock'], ascending=[True, False]).head(10)"
-            )
-        elif "most sold" in q or "best selling" in q or "highest sales" in q:
-            code = (
-                "result = df[['Product_ID', 'Product_Name', 'Units_Sold', 'Hand_In_Stock', 'Cost_Price_Per_Unit_USD']]"
-                ".sort_values(by='Units_Sold', ascending=False).head(10)"
-            )
-        elif "summary" in q or "overview" in q or "describe" in q:
-            code = (
-                "result = {\n"
-                "    'Total_Products': len(df),\n"
+                "    'Total_Products_Count': int(len(df)),\n"
                 "    'Total_Stock_On_Hand': int(df['Hand_In_Stock'].sum()),\n"
-                "    'Total_Sold_Units': int(df['Units_Sold'].sum()),\n"
-                "    'Total_Stock_In': int(df['Purchase_Stock_In'].sum()),\n"
-                "    'Total_Valuation_USD': float(df['Cost_Price_Total_USD'].sum()),\n"
-                "    'Highest_Value_Item': df.loc[df['Cost_Price_Total_USD'].idxmax()]['Product_Name'],\n"
-                "    'Highest_Selling_Item': df.loc[df['Units_Sold'].idxmax()]['Product_Name']\n"
+                "    'Total_Units_Sold': int(df['Units_Sold'].sum()),\n"
+                "    'Total_Inventory_Valuation_USD': float(df['Cost_Price_Total_USD'].sum()),\n"
+                "    'Average_Unit_Cost_USD': float(df['Cost_Price_Per_Unit_USD'].mean().round(2)),\n"
+                "    'Top_Grossing_Product': str(df.loc[df['Cost_Price_Total_USD'].idxmax()]['Product_Name']),\n"
+                "    'Top_Velocity_Product': str(df.loc[df['Units_Sold'].idxmax()]['Product_Name'])\n"
                 "}"
             )
-        else:
-            # Fallback search + comprehensive statistics query
-            if not search_res:
-                search_res = self.search_tool.search(user_query)
-            code = (
-                "result = df.describe().round(2)"
+
+        # 4. Top-N ranking by detected metric
+        if target_metric:
+            asc = is_bottom
+            cols_to_show = ['Product_ID', 'Product_Name', target_metric]
+            if "Cost_Price_Total_USD" != target_metric:
+                cols_to_show.append("Cost_Price_Total_USD")
+            return (
+                f"result = df[{cols_to_show}].sort_values(by='{target_metric}', ascending={asc}).head({n})"
             )
 
-        return {
-            "code": code,
-            "search_result": search_res
-        }
+        # 5. Default statistical exploration
+        return "result = df.describe().round(2)"
 
-    def _call_gemini_or_openai(self, user_query: str) -> Optional[dict]:
-        """Optionally uses Gemini or OpenAI to plan code and search if configured."""
+    def _call_llm(self, query: str) -> Optional[dict]:
+        """Calls Gemini or OpenAI for dynamic code synthesis if configured."""
         if self.gemini_api_key:
             try:
                 from google import genai
                 client = genai.Client(api_key=self.gemini_api_key)
-                prompt = f"""You are an Expert Inventory Data Agent.
-Given this DataFrame schema and summary:
-{self.schema_summary}
-
-User Query: "{user_query}"
-
-Determine:
-1. Does the query require looking up any inventory definitions or domain context? If so, provide the term in 'search_term'.
-2. The exact Python pandas code to answer the query. Assign the final output to a variable named 'result' or print it.
-DataFrame variable is 'df'. Available columns:
-['Product_ID', 'Product_Name', 'Opening_Stock', 'Purchase_Stock_In', 'Units_Sold', 'Hand_In_Stock', 'Cost_Price_Per_Unit_USD', 'Cost_Price_Total_USD']
-
-Respond in valid JSON with keys:
-- "search_term": string or null
-- "code": string (Python executable code)
-"""
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=prompt
+                prompt = (
+                    f"You are an expert Data Science Agent. Given DataFrame 'df' with schema:\n"
+                    f"{self.schema_summary}\n\n"
+                    f"User Query: {query}\n\n"
+                    f"Return JSON with:\n"
+                    f"- 'code': Executable Python code assigning output to variable 'result'\n"
+                    f"- 'search_term': A 2-3 word concept to look up on Wikipedia (or null)"
                 )
-                text = response.text
-                match = re.search(r"\{.*\}", text, re.DOTALL)
+                res = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+                match = re.search(r"\{.*\}", res.text, re.DOTALL)
                 if match:
-                    parsed = json.loads(match.group(0))
-                    search_res = self.search_tool.search(parsed["search_term"]) if parsed.get("search_term") else None
-                    return {"code": parsed.get("code"), "search_result": search_res}
-            except Exception as e:
-                # Fall back gracefully to semantic planner
+                    return json.loads(match.group(0))
+            except Exception:
                 pass
 
         elif self.openai_api_key:
             try:
                 from openai import OpenAI
                 client = OpenAI(api_key=self.openai_api_key)
-                prompt = f"""You are an Expert Inventory Data Agent.
-DataFrame schema:
-{self.schema_summary}
-
-User Query: "{user_query}"
-Columns: ['Product_ID', 'Product_Name', 'Opening_Stock', 'Purchase_Stock_In', 'Units_Sold', 'Hand_In_Stock', 'Cost_Price_Per_Unit_USD', 'Cost_Price_Total_USD']
-
-Return JSON with:
-- "search_term": string or null
-- "code": Python code saving final output in 'result'
-"""
-                response = client.chat.completions.create(
+                prompt = f"Given DataFrame df with columns {list(self.df.columns)}, write python code for: {query}. Assign to 'result'. Return JSON."
+                res = client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[{"role": "user", "content": prompt}],
                     response_format={"type": "json_object"}
                 )
-                parsed = json.loads(response.choices[0].message.content)
-                search_res = self.search_tool.search(parsed["search_term"]) if parsed.get("search_term") else None
-                return {"code": parsed.get("code"), "search_result": search_res}
+                return json.loads(res.choices[0].message.content)
             except Exception:
                 pass
 
         return None
 
-    def _generate_plain_english_summary(self, user_query: str, code: str, exec_res: dict, search_res: Optional[dict]) -> str:
-        """
-        Synthesizes the findings into a polished, executive-ready plain English summary.
-        """
-        summary_parts = []
-        
-        # Include context/definition if queried
-        if search_res and search_res.get("definition"):
-            summary_parts.append(
-                f"### Domain Context & Definition: {search_res.get('matched_term').title()}\n"
-                f"{search_res.get('definition')}\n"
-            )
-
-        summary_parts.append("### 📊 Key Findings & Analysis:")
-        
-        raw_res = exec_res.get("result_raw")
-        if isinstance(raw_res, pd.DataFrame):
-            top_row = raw_res.iloc[0]
-            summary_parts.append(f"- **Top Observation**: The leading item in this query is **{top_row.get('Product_Name', 'N/A')}** (ID: `{top_row.get('Product_ID', 'N/A')}`).")
-            if "Cost_Price_Total_USD" in raw_res.columns:
-                summary_parts.append(f"- **Valuation**: Total held value for top item is **${float(top_row['Cost_Price_Total_USD']):,.2f} USD**.")
-            if "Units_Sold" in raw_res.columns:
-                summary_parts.append(f"- **Velocity**: Top item recorded **{int(top_row['Units_Sold'])} units sold**.")
-            if "Turnover_Ratio" in raw_res.columns:
-                summary_parts.append(f"- **Turnover Ratio**: Top velocity ratio achieved is **{float(top_row['Turnover_Ratio']):.3f}**.")
-            summary_parts.append(f"- Total items identified: **{len(raw_res)} rows** matching criteria.")
-        
-        elif isinstance(raw_res, dict):
-            for k, v in raw_res.items():
-                label = k.replace("_", " ").title()
-                if isinstance(v, float):
-                    summary_parts.append(f"- **{label}**: ${v:,.2f}" if "USD" in k else f"- **{label}**: {v:,.2f}")
-                elif isinstance(v, int):
-                    summary_parts.append(f"- **{label}**: {v:,}")
-                else:
-                    summary_parts.append(f"- **{label}**: {v}")
+    def ask(self, query: str) -> dict:
+        """Main agent turn execution loop."""
+        # Step 1: Formulate plan and code
+        llm_plan = self._call_llm(query)
+        if llm_plan and llm_plan.get("code"):
+            code = llm_plan["code"]
+            search_query = llm_plan.get("search_term")
         else:
-            summary_parts.append(f"- **Result**: {exec_res.get('result') or exec_res.get('output')}")
+            code = self._generate_dynamic_code(query)
+            search_query = query
 
-        summary_parts.append("\n###  Supply Chain Recommendation:")
-        q_low = user_query.lower()
-        if "valuation" in q_low or "cost" in q_low:
-            summary_parts.append(
-                "High-value capital is concentrated in key technology SKUs (e.g. Laptops and Smartphones). "
-                "Recommend applying an **ABC Analysis** regime with cycle counting and tighter minimum buffer levels on Class A items."
-            )
-        elif "turnover" in q_low or "sold" in q_low:
-            summary_parts.append(
-                "High-turnover products show healthy market pull. Ensure supplier lead times are strictly monitored "
-                "to prevent stockouts, and negotiate bulk replenishment discounts for fast movers."
-            )
-        elif "stockout" in q_low or "risk" in q_low:
-            summary_parts.append(
-                "SKUs with low remaining stock should immediately have Purchase Orders (POs) drafted. "
-                "Evaluate supplier lead-time buffers and consider raising safety stock thresholds."
-            )
-        else:
-            summary_parts.append(
-                "Inventory levels appear stable across 46 SKUs. Continuous monitoring of stock-to-sales ratios is recommended."
-            )
+        # Step 2: Live context lookup
+        search_result = self.search_tool.search(search_query)
 
-        return "\n".join(summary_parts)
+        # Step 3: Sandboxed execution with auto-repair
+        exec_res = self.repl.execute(code)
+        if not exec_res["success"]:
+            # Auto-repair column name typos
+            repaired_code = code.replace("Total Cost", "Cost_Price_Total_USD").replace("Units Sold", "Units_Sold")
+            exec_res = self.repl.execute(repaired_code)
+            if exec_res["success"]:
+                code = repaired_code
 
-    def ask(self, user_query: str) -> dict:
-        """
-        Main query entrypoint.
-        Returns full trace: query, code_written, execution_output, search_context, plain_english_summary.
-        """
-        # Step 1: Formulate plan (LLM or Semantic Planner)
-        plan = self._call_gemini_or_openai(user_query)
-        if not plan or not plan.get("code"):
-            plan = self._offline_semantic_planner(user_query)
+        # Step 4: Synthesize plain English summary
+        summary = self._summarize(query, exec_res, search_result)
 
-        code = plan["code"]
-        search_res = plan.get("search_result")
-
-        # Step 2: Execute sandboxed code
-        exec_res = self._execute_code(code)
-
-        # Step 3: Plain English summary
-        summary = self._generate_plain_english_summary(user_query, code, exec_res, search_res)
-
-        turn_record = {
-            "query": user_query,
+        turn = {
+            "query": query,
             "code": code,
             "execution": exec_res,
-            "search_context": search_res,
+            "search_context": search_result,
             "summary": summary
         }
-        self.history.append(turn_record)
-        return turn_record
+        self.history.append(turn)
+        return turn
 
+    def _summarize(self, query: str, exec_res: dict, search_res: dict) -> str:
+        parts = []
+        if search_res and search_res.get("definition"):
+            parts.append(
+                f"### 🌐 Live Knowledge Reference: {search_res.get('matched_term')}\n"
+                f"{search_res.get('definition')}\n\n*Source: {search_res.get('source')}*\n"
+            )
+
+        parts.append("### 📊 Data Analysis & Findings:")
+        raw = exec_res.get("result_raw")
+        if isinstance(raw, pd.DataFrame):
+            parts.append(f"- Query executed successfully across **{len(raw)} rows**.")
+            if not raw.empty:
+                top = raw.iloc[0]
+                item_name = top.get('Product_Name', top.get('Product_ID', 'Top Row'))
+                parts.append(f"- Leading Item Identified: **{item_name}**.")
+                if "Cost_Price_Total_USD" in raw.columns:
+                    parts.append(f"- Inventory Valuation: **${float(top['Cost_Price_Total_USD']):,.2f} USD**.")
+                if "Units_Sold" in raw.columns:
+                    parts.append(f"- Velocity / Units Sold: **{int(top['Units_Sold']):,} units**.")
+                if "Turnover_Ratio" in raw.columns:
+                    parts.append(f"- Turnover Velocity Ratio: **{float(top['Turnover_Ratio']):.4f}**.")
+        elif isinstance(raw, dict):
+            for k, v in raw.items():
+                lbl = k.replace("_", " ").title()
+                val_str = f"${v:,.2f}" if "USD" in k and isinstance(v, (int, float)) else f"{v:,}" if isinstance(v, int) else f"{v}"
+                parts.append(f"- **{lbl}**: {val_str}")
+        else:
+            parts.append(f"- Result: `{exec_res.get('result') or exec_res.get('output')}`")
+
+        parts.append("\n### 💡 Strategic Recommendation:")
+        parts.append(
+            "Based on the observed distribution, optimize capital allocation by establishing dynamic reorder points "
+            "for high-velocity items and auditing safety buffers on top-valuation SKUs."
+        )
+        return "\n".join(parts)

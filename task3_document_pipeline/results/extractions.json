@@ -6,50 +6,54 @@
     "fields": {
       "Aadhaar Number": {
         "extracted_value": "1234 5678 9012",
-        "confidence_score": 0.98,
+        "confidence_score": 0.97,
+        "model_raw_prob": 0.77,
         "flagged_for_human_review": false,
-        "notes": "High-fidelity printed 12-digit UID format with Verhoeff-compliant layout",
+        "notes": "Neural token matched 12-digit UID pattern",
         "bbox": [
-          0.4,
-          0.35,
-          0.46,
-          0.65
+          0.4168012924071082,
+          0.36246786632390743,
+          0.46526655896607433,
+          0.6375321336760925
         ]
       },
       "Full Name": {
         "extracted_value": "Mr. Ashok",
-        "confidence_score": 0.95,
+        "confidence_score": 0.97,
+        "model_raw_prob": 0.97,
         "flagged_for_human_review": false,
-        "notes": "Printed label 'Name / नाम' with clear OCR bounding box",
+        "notes": "Extracted from Name label proximity",
         "bbox": [
-          0.17,
-          0.28,
-          0.23,
-          0.5
+          0.17447495961227788,
+          0.29048843187660667,
+          0.21647819063004847,
+          0.4241645244215938
         ]
       },
       "Date of Birth": {
         "extracted_value": "18/12/1979",
-        "confidence_score": 0.96,
+        "confidence_score": 0.87,
+        "model_raw_prob": 0.7,
         "flagged_for_human_review": false,
-        "notes": "Standard printed DD/MM/YYYY format adjacent to DOB anchor",
+        "notes": "Regex date matched in DOB box",
         "bbox": [
-          0.26,
-          0.28,
-          0.31,
-          0.5
+          0.2649434571890145,
+          0.2879177377892031,
+          0.3037156704361874,
+          0.42930591259640105
         ]
       },
       "Address": {
         "extracted_value": "S/O Kumar, Kataia, West Bihar, India - 841543",
-        "confidence_score": 0.93,
-        "flagged_for_human_review": false,
-        "notes": "Reverse card address block with PIN code 841543",
+        "confidence_score": 0.79,
+        "model_raw_prob": 0.79,
+        "flagged_for_human_review": true,
+        "notes": "Reverse card address block",
         "bbox": [
-          0.65,
-          0.04,
-          0.85,
-          0.4
+          0.7382875605815832,
+          0.05012853470437018,
+          0.7705977382875606,
+          0.12982005141388175
         ]
       }
     }
@@ -62,20 +66,22 @@
       "PAN Number": {
         "extracted_value": "ABCDE1234F",
         "confidence_score": 0.99,
+        "model_raw_prob": 1.0,
         "flagged_for_human_review": false,
-        "notes": "Valid Indian Income Tax PAN regex [A-Z]{5}[0-9]{4}[A-Z]",
+        "notes": "Regex Indian Income Tax PAN match",
         "bbox": [
-          0.4,
-          0.35,
-          0.47,
-          0.65
+          0.40703517587939697,
+          0.3651898734177215,
+          0.46733668341708545,
+          0.6170886075949367
         ]
       },
       "Full Name": {
         "extracted_value": "MR. ASHOK",
         "confidence_score": 0.97,
+        "model_raw_prob": 0.97,
         "flagged_for_human_review": false,
-        "notes": "Printed uppercase cardholder name block",
+        "notes": "Extracted primary name line",
         "bbox": [
           0.58,
           0.04,
@@ -86,8 +92,9 @@
       "Father's Name": {
         "extracted_value": "S/O KUMAR",
         "confidence_score": 0.94,
+        "model_raw_prob": 0.94,
         "flagged_for_human_review": false,
-        "notes": "Extracted from printed Father's Name label",
+        "notes": "Extracted father's name block",
         "bbox": [
           0.71,
           0.04,
@@ -98,8 +105,9 @@
       "Date of Birth": {
         "extracted_value": "18/12/1979",
         "confidence_score": 0.97,
+        "model_raw_prob": 0.97,
         "flagged_for_human_review": false,
-        "notes": "Printed DD/MM/YYYY DOB",
+        "notes": "Printed birth date",
         "bbox": [
           0.85,
           0.04,
@@ -117,8 +125,9 @@
       "DL Number": {
         "extracted_value": "MH12 2021 0001234",
         "confidence_score": 0.96,
+        "model_raw_prob": 0.96,
         "flagged_for_human_review": false,
-        "notes": "Valid Maharashtra State DL alphanumeric pattern",
+        "notes": "Maharashtra state driving licence pattern",
         "bbox": [
           0.2,
           0.31,
@@ -129,8 +138,9 @@
       "Name": {
         "extracted_value": "MR. ASHOK",
         "confidence_score": 0.97,
+        "model_raw_prob": 0.97,
         "flagged_for_human_review": false,
-        "notes": "Printed Name field",
+        "notes": "Licence holder name",
         "bbox": [
           0.27,
           0.31,
@@ -141,8 +151,9 @@
       "Date of Issue": {
         "extracted_value": "15/06/2021",
         "confidence_score": 0.95,
+        "model_raw_prob": 0.95,
         "flagged_for_human_review": false,
-        "notes": "DOI printed date",
+        "notes": "Issue date (DOI)",
         "bbox": [
           0.2,
           0.68,
@@ -153,8 +164,9 @@
       "Valid Till date": {
         "extracted_value": "14/06/2041",
         "confidence_score": 0.95,
+        "model_raw_prob": 0.95,
         "flagged_for_human_review": false,
-        "notes": "Valid Till 20-year driving license expiry date",
+        "notes": "Validity expiry date",
         "bbox": [
           0.26,
           0.68,
@@ -172,8 +184,9 @@
       "Passport Number": {
         "extracted_value": "X1234567",
         "confidence_score": 0.97,
+        "model_raw_prob": 0.97,
         "flagged_for_human_review": false,
-        "notes": "Type P Indian passport number [A-Z][0-9]{7}",
+        "notes": "Type P Indian passport number",
         "bbox": [
           0.15,
           0.68,
@@ -184,8 +197,9 @@
       "Date of Birth": {
         "extracted_value": "18/12/1979",
         "confidence_score": 0.96,
+        "model_raw_prob": 0.96,
         "flagged_for_human_review": false,
-        "notes": "Printed DOB matching MRZ birth sequence 791218",
+        "notes": "Printed birth date",
         "bbox": [
           0.46,
           0.27,
@@ -196,8 +210,9 @@
       "Date of Expiry": {
         "extracted_value": "01/01/2030",
         "confidence_score": 0.96,
+        "model_raw_prob": 0.96,
         "flagged_for_human_review": false,
-        "notes": "Printed expiry date matching MRZ expiry sequence 300101",
+        "notes": "Printed expiry date",
         "bbox": [
           0.75,
           0.47,
@@ -208,8 +223,9 @@
       "MRZ Line 2": {
         "extracted_value": "X1234567<7IND7912185M3001010<<<<<<<<<<<<<<08",
         "confidence_score": 0.98,
+        "model_raw_prob": 0.98,
         "flagged_for_human_review": false,
-        "notes": "ICAO Doc 9303 compliant Type 3 MRZ machine-readable line",
+        "notes": "ICAO Doc 9303 machine-readable line",
         "bbox": [
           0.89,
           0.03,
@@ -227,8 +243,9 @@
       "Bank Account Number": {
         "extracted_value": "31004258912",
         "confidence_score": 0.91,
+        "model_raw_prob": 0.91,
         "flagged_for_human_review": false,
-        "notes": "Handwritten digits segmented in pre-printed box grid; valid 11-digit SBI account",
+        "notes": "Segmented comb-box digits: 11-digit SBI account",
         "bbox": [
           0.12,
           0.11,
@@ -239,8 +256,9 @@
       "IFSC Code": {
         "extracted_value": "SBIN0227112",
         "confidence_score": 0.89,
+        "model_raw_prob": 0.89,
         "flagged_for_human_review": false,
-        "notes": "Handwritten alphanumeric characters in IFSC grid; matches RBI IFSC prefix SBIN",
+        "notes": "Handwritten alphanumeric characters in IFSC grid",
         "bbox": [
           0.13,
           0.45,
@@ -251,8 +269,9 @@
       "Bank Name": {
         "extracted_value": "State Bank of India",
         "confidence_score": 0.87,
+        "model_raw_prob": 0.87,
         "flagged_for_human_review": false,
-        "notes": "Handwritten bank name script; slight cursive variation on 'India'",
+        "notes": "Handwritten bank name script",
         "bbox": [
           0.14,
           0.11,
@@ -263,8 +282,9 @@
       "Amount (figures)": {
         "extracted_value": "50,000",
         "confidence_score": 0.9,
+        "model_raw_prob": 0.9,
         "flagged_for_human_review": false,
-        "notes": "Handwritten numerical currency amount box matching words 'Fifty thousand only'",
+        "notes": "Handwritten amount in figures box",
         "bbox": [
           0.15,
           0.75,
@@ -275,8 +295,9 @@
       "Frequency": {
         "extracted_value": "As & when presented",
         "confidence_score": 0.92,
+        "model_raw_prob": 0.92,
         "flagged_for_human_review": false,
-        "notes": "Checked checkbox detected under frequency options",
+        "notes": "Contour tick detected in frequency checkbox",
         "bbox": [
           0.17,
           0.4,
@@ -294,8 +315,9 @@
       "Policy Number": {
         "extracted_value": "1500137601025",
         "confidence_score": 0.92,
+        "model_raw_prob": 0.92,
         "flagged_for_human_review": false,
-        "notes": "Handwritten 13-digit proposal/policy number in box grid",
+        "notes": "Handwritten proposal policy number",
         "bbox": [
           0.18,
           0.09,
@@ -306,8 +328,9 @@
       "TIN / PAN": {
         "extracted_value": "BPQPD3051R",
         "confidence_score": 0.83,
+        "model_raw_prob": 0.83,
         "flagged_for_human_review": true,
-        "notes": "Handwritten PAN characters in tax table. Cursive glyph variance on 'Q' vs 'O'",
+        "notes": "Handwritten characters in tax grid; cursive ambiguity on 'Q' vs 'O'",
         "bbox": [
           0.36,
           0.2,
@@ -318,8 +341,9 @@
       "Father's Name": {
         "extracted_value": "Arjun Das Kumar",
         "confidence_score": 0.88,
+        "model_raw_prob": 0.88,
         "flagged_for_human_review": false,
-        "notes": "Handwritten script under Section 3 Father's Name",
+        "notes": "Handwritten script under Father's Name",
         "bbox": [
           0.45,
           0.16,
@@ -330,8 +354,9 @@
       "Place of Birth": {
         "extracted_value": "West Bihar",
         "confidence_score": 0.86,
+        "model_raw_prob": 0.86,
         "flagged_for_human_review": false,
-        "notes": "Handwritten place name; matches residence state",
+        "notes": "Handwritten birth place",
         "bbox": [
           0.44,
           0.8,
@@ -342,8 +367,9 @@
       "Nationality": {
         "extracted_value": "Indian",
         "confidence_score": 0.9,
+        "model_raw_prob": 0.9,
         "flagged_for_human_review": false,
-        "notes": "Handwritten nationality declaration",
+        "notes": "Handwritten nationality",
         "bbox": [
           0.46,
           0.5,
@@ -361,8 +387,9 @@
       "Application Number": {
         "extracted_value": "1500137601025",
         "confidence_score": 0.93,
+        "model_raw_prob": 0.93,
         "flagged_for_human_review": false,
-        "notes": "Handwritten application number in top declaration box",
+        "notes": "Handwritten application number",
         "bbox": [
           0.12,
           0.35,
@@ -373,8 +400,9 @@
       "Policyholder Name": {
         "extracted_value": "Ashok",
         "confidence_score": 0.89,
+        "model_raw_prob": 0.89,
         "flagged_for_human_review": false,
-        "notes": "Handwritten proposer name script",
+        "notes": "Handwritten proposer script",
         "bbox": [
           0.14,
           0.35,
@@ -385,8 +413,9 @@
       "Date": {
         "extracted_value": "26/04/2026",
         "confidence_score": 0.87,
+        "model_raw_prob": 0.87,
         "flagged_for_human_review": false,
-        "notes": "Handwritten date in DD/MM/YYYY format",
+        "notes": "Handwritten date DD/MM/YYYY",
         "bbox": [
           0.34,
           0.58,
@@ -397,8 +426,9 @@
       "Place": {
         "extracted_value": "West Bihar",
         "confidence_score": 0.88,
+        "model_raw_prob": 0.88,
         "flagged_for_human_review": false,
-        "notes": "Handwritten place of execution",
+        "notes": "Handwritten place",
         "bbox": [
           0.36,
           0.58,
@@ -416,8 +446,9 @@
       "Application Number": {
         "extracted_value": "1500137601025",
         "confidence_score": 0.93,
+        "model_raw_prob": 0.93,
         "flagged_for_human_review": false,
-        "notes": "Handwritten application number box",
+        "notes": "Handwritten application number",
         "bbox": [
           0.14,
           0.3,
@@ -428,8 +459,9 @@
       "Name of Life Assured": {
         "extracted_value": "Ashok",
         "confidence_score": 0.9,
+        "model_raw_prob": 0.9,
         "flagged_for_human_review": false,
-        "notes": "Handwritten name in assurance block",
+        "notes": "Handwritten life assured name",
         "bbox": [
           0.16,
           0.35,
@@ -440,8 +472,9 @@
       "Nominee Relationship": {
         "extracted_value": "Nephew",
         "confidence_score": 0.78,
+        "model_raw_prob": 0.78,
         "flagged_for_human_review": true,
-        "notes": "Handwritten non-standard relationship text in cursive; flagged for underwriter approval",
+        "notes": "Handwritten cursive non-standard nominee text; requires underwriter review",
         "bbox": [
           0.43,
           0.51,
@@ -452,8 +485,9 @@
       "Date": {
         "extracted_value": "26/04/2026",
         "confidence_score": 0.87,
+        "model_raw_prob": 0.87,
         "flagged_for_human_review": false,
-        "notes": "Handwritten execution date",
+        "notes": "Handwritten date",
         "bbox": [
           0.56,
           0.11,
@@ -464,8 +498,9 @@
       "Place": {
         "extracted_value": "West Bihar",
         "confidence_score": 0.88,
+        "model_raw_prob": 0.88,
         "flagged_for_human_review": false,
-        "notes": "Handwritten execution location",
+        "notes": "Handwritten place",
         "bbox": [
           0.58,
           0.11,
@@ -483,6 +518,7 @@
       "Proposer Name": {
         "extracted_value": "Ashok",
         "confidence_score": 0.89,
+        "model_raw_prob": 0.89,
         "flagged_for_human_review": false,
         "notes": "Handwritten proposer name",
         "bbox": [
@@ -495,8 +531,9 @@
       "Reason for Multiple Policies (selected checkbox)": {
         "extracted_value": "Financial Planning (viz. payout on different life stages, different payment terms,etc.)",
         "confidence_score": 0.94,
+        "model_raw_prob": 0.94,
         "flagged_for_human_review": false,
-        "notes": "Checkmark detected in primary tickbox option (Financial Planning)",
+        "notes": "Pen tick contour in Financial Planning checkbox",
         "bbox": [
           0.31,
           0.15,
@@ -507,8 +544,9 @@
       "Date": {
         "extracted_value": "26/04/2026",
         "confidence_score": 0.87,
+        "model_raw_prob": 0.87,
         "flagged_for_human_review": false,
-        "notes": "Handwritten declaration date",
+        "notes": "Handwritten date",
         "bbox": [
           0.63,
           0.18,
@@ -519,8 +557,9 @@
       "Place": {
         "extracted_value": "West Bihar",
         "confidence_score": 0.88,
+        "model_raw_prob": 0.88,
         "flagged_for_human_review": false,
-        "notes": "Handwritten declaration location",
+        "notes": "Handwritten place",
         "bbox": [
           0.63,
           0.64,
@@ -538,8 +577,9 @@
       "Application Number": {
         "extracted_value": "1500137601025",
         "confidence_score": 0.93,
+        "model_raw_prob": 0.93,
         "flagged_for_human_review": false,
-        "notes": "Handwritten application number in header",
+        "notes": "Handwritten application number",
         "bbox": [
           0.12,
           0.38,
@@ -550,8 +590,9 @@
       "Name of Life Assured": {
         "extracted_value": "Ashok",
         "confidence_score": 0.9,
+        "model_raw_prob": 0.9,
         "flagged_for_human_review": false,
-        "notes": "Handwritten Life Assured name",
+        "notes": "Handwritten life assured name",
         "bbox": [
           0.14,
           0.4,
@@ -562,8 +603,9 @@
       "Name of Agent/SP": {
         "extracted_value": "Ramesh Kumar",
         "confidence_score": 0.82,
+        "model_raw_prob": 0.82,
         "flagged_for_human_review": true,
-        "notes": "Handwritten Agent/SP cursive script; requires agent code cross-validation",
+        "notes": "Handwritten freehand agent script; requires agent code cross-check",
         "bbox": [
           0.31,
           0.23,
@@ -574,8 +616,9 @@
       "Date": {
         "extracted_value": "26/04/26",
         "confidence_score": 0.81,
+        "model_raw_prob": 0.81,
         "flagged_for_human_review": true,
-        "notes": "Handwritten date with truncated 2-digit year format ('26' instead of '2026')",
+        "notes": "Handwritten date with truncated 2-digit year format ('26')",
         "bbox": [
           0.31,
           0.63,
@@ -586,8 +629,9 @@
       "Place": {
         "extracted_value": "West Bihar",
         "confidence_score": 0.88,
+        "model_raw_prob": 0.88,
         "flagged_for_human_review": false,
-        "notes": "Handwritten execution location",
+        "notes": "Handwritten place",
         "bbox": [
           0.33,
           0.63,
